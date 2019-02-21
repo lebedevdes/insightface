@@ -99,3 +99,13 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# .idea IDE files
+.idea/
+
+# Models directory
+models/
+!models/README.md
+convert_to_coreml/
+
+\.DS_Store
