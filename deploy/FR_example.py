@@ -3,6 +3,8 @@ from __future__ import print_function
 
 
 import sys
+import argparse
+from math import sqrt
 import numpy as np
 import cv2
 import mxnet as mx
@@ -22,7 +24,7 @@ class Landmarks:
 
 
 class FaceRecognition:
-    def __init__(self):
+    def __init__(self, mode):
         self.landmarks_threshold = 0.5
 
         # Initialize face alignment network
@@ -30,7 +32,7 @@ class FaceRecognition:
         try:
             fan = FaceAlignment(LandmarksType.point_2D,
                                 flip_input=False,
-                                device='cuda',
+                                device=mode,
                                 model_dir="../models/face_landmarks")
             self.fan = fan
         except Exception as err:
@@ -40,10 +42,13 @@ class FaceRecognition:
         # Initialize arcnet model
         print("Initialize FR model")
         try:
-            ctx = mx.gpu(0)
+            if mode == 'cpu':
+                ctx = mx.cpu(0)
+            else:
+                ctx = mx.gpu(0)
             image_size = (112, 112)
-            prefix = "../models/model-r100s"
-            epoch = 0
+            prefix = "../models/model-r50i"
+            epoch = 229
             sym, arg_params, aux_params = mx.model.load_checkpoint(prefix,
                                                                    epoch)
             all_layers = sym.get_internals()
@@ -149,8 +154,8 @@ class FaceRecognition:
                                           image_size='112,112')
             rimg = cv2.cvtColor(alignmented, cv2.COLOR_BGR2RGB)
             pimg = np.transpose(rimg, (2, 0, 1)).astype(np.float32)
-            pimg -= 127.5
-            pimg *= 0.0078125
+            # pimg -= 127.5
+            # pimg *= 0.0078125
             input_blob = np.expand_dims(pimg, axis=0)
             data = mx.nd.array(input_blob)
             db = mx.io.DataBatch(data=(data,))
@@ -164,20 +169,31 @@ class FaceRecognition:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='face recognition example')
+    # general
+    parser.add_argument('--mode', default='cpu', help='cpu or cuda')
+    args = parser.parse_args()
+
     img1 = 'camera-001_18_M_0-20_1544405111.614.jpg'
     img2 = 'camera-001_20_M_0-20_1544405366.065.jpg'
+    img3 = 'camera-001_000638_M_38-53_1550853919.567.jpg'
 
-    fr = FaceRecognition()
+    fr = FaceRecognition(args.mode)
     f1 = fr.get_face_features(img1)
     f2 = fr.get_face_features(img2)
+    f3 = fr.get_face_features(img3)
 
     print(f1)
     print(f2)
 
-    dist = np.sum(np.square(f1 - f2))
+    dist_t = np.sum(np.square(f1 - f2))
+    dist_f = np.sum(np.square(f1 - f3))
 
-    print(dist)
+    sim_t = (1 - 0.5 * sqrt(dist_t)) * 100
+    sim_f = (1 - 0.5 * sqrt(dist_f)) * 100
 
+    print(dist_t)
+    print(dist_f)
 
-
-
+    print("sim = ", sim_t, "%")
+    print("sim = ", dist_f, "%")

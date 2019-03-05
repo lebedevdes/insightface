@@ -77,7 +77,10 @@ class FaceAlignment:
             raise Exception(
                 'Landmarks model file not found: {}'.format(model_file)
             )
-        fan_weights = torch.load(model_file)
+        if device == 'cpu':
+            fan_weights = torch.load(model_file, map_location='cpu')
+        else:
+            fan_weights = torch.load(model_file)
 
         self.face_alignment_net.load_state_dict(fan_weights)
 
