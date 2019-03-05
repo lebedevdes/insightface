@@ -196,4 +196,4 @@ if __name__ == '__main__':
     print(dist_f)
 
     print("sim = ", sim_t, "%")
-    print("sim = ", dist_f, "%")
+    print("sim = ", sim_f, "%")
