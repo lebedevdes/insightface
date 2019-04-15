@@ -104,8 +104,13 @@ ENV/
 .idea/
 
 # Models directory
-models/
+models/*
 !models/README.md
+
+# Datasets directory
+datasets/*
+!datasets/README.md
+
 convert_to_coreml/
 
 \.DS_Store
