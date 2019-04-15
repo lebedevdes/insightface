@@ -143,6 +143,19 @@ class FaceRecognition:
         landmarks.chin = points[8]
         return landmarks
 
+    @staticmethod
+    def norm_l2(v):
+        v = v.flatten()
+        norm = 0
+        for i in v:
+            norm += i ** 2
+        norm = sqrt(norm)
+        normalized = []
+        for i in v:
+            i = i / norm
+            normalized.append(i)
+        return normalized
+
     def get_face_features(self, image_path):
         try:
             img = cv2.imread(image_path)
